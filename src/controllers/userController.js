@@ -2,9 +2,9 @@ import {User} from '../models/userModel.js'
 import bcrypt from 'bcrypt'
 
 const userRegister = async (req,res) => {
-    const {username, email} = req.body ?? {}
+    const {username, email,password} = req.body ?? {}
 
-    if(!username || !email){
+    if(!username || !email || !password){
         throw new Error("Username and email is required")
     }
     if(typeof username !== "string" || username.trim() === "" || typeof email !== "string" || email.trim() === ""){
@@ -17,7 +17,8 @@ const userRegister = async (req,res) => {
     }
     const user = await User.create({
         username: username,
-        email: email
+        email: email,
+        password: password
     })
 
     const createdUser = await User.findOne({email}).select("-password -refreshToken")
@@ -27,7 +28,29 @@ const userRegister = async (req,res) => {
     
 }
 
+const userLogin = async (req,res) => {
+    const {email,password} = req.body
+    if(!email || !password) throw new Error("Email and Password are required!")
+    
+    const user = await User.findOne({email});
+    if(!user) throw new Error("User not found")
+    
+    const validatePassword = await user.isCorrectPassword(password)
+    if(!validatePassword) throw new Error("Password is incorrect")
+
+    const accessToken = await user.generateAccessToken()
+    const refreshToken = await user.generateRefreshToken()
+    await user.save({validateBeforeSave: false})
+
+    const loggedInUser = await User.findById(user._id).select("-password -refreshToken")
+
+    return res.status(201)
+    .cookie("accessToken", accessToken)
+    .cookie("refreshToken", refreshToken)
+    .json("User logged in successfully..." + "  AccessToken: " + accessToken + "    RefreshToken: " + refreshToken)
+}
 
 
 
-export {userRegister} 
+
+export {userRegister, userLogin} 
