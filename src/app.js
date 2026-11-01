@@ -2,7 +2,9 @@ import express from 'express'
 import 'dotenv/config'
 import mongoose from 'mongoose'
 import userRouter from './routes/userRoutes.js'
+import adminRouter from './routes/adminRoutes.js'
 import cookieParser from 'cookie-parser'
+import { DB_NAME } from './utils/constants.js'
 
 const app = express()
 const port = process.env.PORT || 5000
@@ -15,10 +17,11 @@ app.get("/", (req,res) => {
 })
 
 app.use("/users", userRouter)
+app.use("/admin", adminRouter)
 
 const connectDB = async () => {
     try {
-        const connectionInstance = await mongoose.connect(`${process.env.MONGODB_URI}/WanderLust`)
+        const connectionInstance = await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
         console.log(connectionInstance.connection.host);
         
     } catch (error) {
