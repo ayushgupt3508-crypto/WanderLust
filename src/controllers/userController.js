@@ -53,16 +53,16 @@ const userLogin = async (req,res) => {
 
 const userLogout = async (req,res) => {
 
-    const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ","")
+    // const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ","")
 
-    if(!token) throw new Error("Invalid user")
+    // if(!token) throw new Error("Invalid user")
 
-    const decodedToken = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+    // const decodedToken = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
 
     // const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
 
     await User.findByIdAndUpdate(
-        decodedToken?._id,
+        req.user?._id,
         {
             $set : {
                 refreshToken: undefined
