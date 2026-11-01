@@ -1,5 +1,6 @@
 import {User} from '../models/userModel.js'
 import bcrypt from 'bcrypt'
+import jwt from "jsonwebtoken"
 
 const userRegister = async (req,res) => {
     const {username, email,password} = req.body ?? {}
@@ -50,7 +51,32 @@ const userLogin = async (req,res) => {
     .json("User logged in successfully..." + "  AccessToken: " + accessToken + "    RefreshToken: " + refreshToken)
 }
 
+const userLogout = async (req,res) => {
+
+    const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ","")
+
+    if(!token) throw new Error("Invalid user")
+
+    const decodedToken = await jwt.verify(token, process.env.ACCESS_TOKEN_SECRET)
+
+    // const user = await User.findById(decodedToken?._id).select("-password -refreshToken")
+
+    await User.findByIdAndUpdate(
+        decodedToken?._id,
+        {
+            $set : {
+                refreshToken: undefined
+            }
+        }
+    )
+    console.log("User logged out successfully.....");
+    
+    return res.status(201)
+    .clearCookie("accessToken")
+    .clearCookie("refreshToken")
+    .json("User logged out successfully...")
+}
 
 
 
-export {userRegister, userLogin} 
+export {userRegister, userLogin, userLogout} 
