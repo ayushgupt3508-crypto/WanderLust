@@ -19,9 +19,16 @@ const userSchema = new Schema({
         trim: true,
         index: true
     },
+    googleId: {
+    type: String,
+    unique: true,
+    sparse: true
+    },
     password: {
         type: String,
-        required: true
+        required: function () {
+        return !this.googleId
+    }
     },
     refreshToken: {
         type: String
